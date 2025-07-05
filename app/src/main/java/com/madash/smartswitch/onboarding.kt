@@ -1,0 +1,136 @@
+package com.madash.smartswitch
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.google.accompanist.pager.*
+import kotlinx.coroutines.launch
+import com.madash.smartswitch.R   // adjust if your R package differs
+
+/* ---------- data for each slide ---------- */
+private data class OnboardPage(
+    val title : String,
+    val body  : String,
+    val icon  : Int            // drawable resource ID
+)
+
+/* ---------- your three pages ---------- */
+private val pages = listOf(
+    OnboardPage(
+        "Clone Your Phone",
+        "Transfer all your data, apps, and settings from your old device to your new one seamlessly.",
+        R.drawable.onboardingimg1           // 1st vector
+    ),
+    OnboardPage(
+        "Smart AI Assistant",
+        "Get intelligent help with device setup, file organization, and transfer optimization powered by AI.",
+        R.drawable.onboardingimg1         // 2nd vector
+    ),
+    OnboardPage(
+        "Ready in Minutes",
+        "Enjoy your new phone with everything in place.",
+        R.drawable.onboardingimg1                 // 3rd vector
+    )
+)
+
+@OptIn(ExperimentalPagerApi::class)
+@Composable
+fun OnboardingScreen(
+    onFinished: () -> Unit
+) {
+    val pagerState = rememberPagerState()
+    val scope      = rememberCoroutineScope()
+
+    Box(Modifier.fillMaxSize()) {
+
+        /* ---- Horizontal pager ---- */
+        HorizontalPager(
+            count = pages.size,
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { index ->
+            PageContent(page = pages[index])
+        }
+
+        /* ---- Skip button on top‑right (pages 0 & 1) ---- */
+        if (pagerState.currentPage < pages.lastIndex) {
+            TextButton(
+                onClick = onFinished,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            ) { Text("Skip") }
+        }
+
+        /* ---- Dots indicator ---- */
+        HorizontalPagerIndicator(
+            pagerState = pagerState,
+            modifier   = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 96.dp),
+            activeColor   = MaterialTheme.colorScheme.primary,
+            inactiveColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+        )
+
+        /* ---- Get Started (only on last page) ---- */
+        if (pagerState.currentPage == pages.lastIndex) {
+            Button(
+                onClick = onFinished,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 32.dp)
+            ) { Text("Get Started") }
+        }
+    }
+}
+
+/* ---------- single slide ---------- */
+@Composable
+private fun PageContent(page: OnboardPage) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement  = Arrangement.Center
+    ) {
+        Icon(
+            ImageVector.vectorResource(id = page.icon),
+            contentDescription = null,
+            tint     = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(96.dp)
+        )
+
+        Spacer(Modifier.height(48.dp))
+
+        Text(
+            text  = page.title,
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        Text(
+            text  = page.body,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun OnboardingScreenPreview() {
+    OnboardingScreen {}
+}

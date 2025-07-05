@@ -4,9 +4,15 @@
     android:viewportWidth="27"
     android:viewportHeight="23">
   <group>
-    <clip-path
-        android:pathData="M0.141,0.922h26.719v21.375h-26.719z"/>
-    <group>
+      <clip-path
+          android:pathData="M0.141,0.922h26.719v21.375h-26.719z"/>
+    <group
+        android:translateX="0.5"
+        android:translateY="0.5"
+        android:scaleX="0.6"
+        android:scaleY="0.6"
+        android:pivotX="12"
+        android:pivotY="12">
       <clip-path
           android:pathData="M0.141,0.922H26.859V22.297H0.141V0.922Z"/>
       <path

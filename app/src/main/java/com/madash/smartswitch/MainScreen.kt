@@ -6,323 +6,287 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-@OptIn(ExperimentalMaterial3Api::class)
+private fun storagecard(dynamic: Boolean, colors: ColorScheme): Color =
+    if (dynamic) colors.primaryContainer else colors.surfaceVariant
+
 @Composable
 fun MainScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF9FAFB))
-            .padding(16.dp)
+
+    Surface(
+
+        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars),
+
+        color = MaterialTheme.colorScheme.background // 👈 dynamic background color
     ) {
-        // Top Bar with App Name
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector =  ImageVector.vectorResource(R.drawable.white_arrow),
-                contentDescription = "Smart Transfer Icon",
-                tint = Color.Unspecified,
+        Column {
+            Column(
                 modifier = Modifier
-                    .size(40.dp)
-                    .padding(start = 8.dp)
-            )
-            Text(
-                text = "Smart Transfer",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                ),
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Device Storage Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            )
+                    .weight(1f).padding(16.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Storage Icon
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.phone),
-                    contentDescription = "Device Storage",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(40.dp)
+            /* -------- App name row -------- */
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val dynamic = LocalDynamicColour.current
+                val primary = MaterialTheme.colorScheme.primary
+                val secondary = MaterialTheme.colorScheme.primaryContainer
+                val iconTint = if (dynamic) primary else Color.Unspecified
+                val iconTint2 = if (dynamic) secondary else Color.Unspecified
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = primary, // ← always use primary color
+                            shape = RoundedCornerShape(12.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.whitearr),
+                        contentDescription = null,
+                        tint = iconTint2, // ← dynamic = primary tint, else original
+                        modifier = Modifier.size(50.dp)
+                    )
+                }
+
+                Text(
+                    "Smart Transfer",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 8.dp)
                 )
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                // Storage Info
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "Device Storage",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "128 GB total",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Progress Bar
-                    LinearProgressIndicator(
-                        progress = 0.68f,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = Color(0xFFE0E0E0)
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "87 GB used",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-                    )
-                }
-
-                // Storage Amount
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Text(
-                        text = "87 GB",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = "used",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-                    )
-                }
             }
+
+            Spacer(Modifier.height(24.dp))
+
+            StorageCard()
+            Spacer(Modifier.height(24.dp))
+            FeatureGrid()
+            Spacer(Modifier.weight(1f))
+
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Main Feature Cards Grid
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // File Transfer Card
-            FeatureCard(
-                modifier = Modifier.weight(1f),
-                title = "File Transfer",
-                subtitle = "Send & Receive Data",
-                icon = ImageVector.vectorResource(R.drawable.div),
-                backgroundColor = Color(0xFFF0F8FF),
-
-            )
-
-            // Phone Clone Card
-            FeatureCard(
-                modifier = Modifier.weight(1f),
-                title = "Phone Clone",
-                subtitle = "Transfer Data to New Phone",
-                icon = ImageVector.vectorResource(R.drawable.phone_clone),
-                backgroundColor = Color(0xFFFFF0F5)
-            )
+            SmartBottomBar()
         }
+    }
+}
+/* ───────── Storage card ───────── */
+@Composable
+private fun StorageCard() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp),
+        shape  = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = storagecolor(dynamic = LocalDynamicColour.current, colors = MaterialTheme.colorScheme)
+        )
+    ) {
+        Row(Modifier
+            .fillMaxSize()
+            .padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Mobile to PC Card
-            FeatureCard(
-                modifier = Modifier.weight(1f),
-                title = "Mobile to PC",
-                subtitle = "Share Files with Laptop or PC",
-                icon = ImageVector.vectorResource(R.drawable.mbl_to_pc),
-                backgroundColor = Color(0xFFF0FFF0)
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.phone),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(40.dp)
             )
 
-            // AI Assistant Card
-            FeatureCard(
-                modifier = Modifier.weight(1f),
-                title = "AI Assistant",
-                subtitle = "Smart Data Transfer",
-                icon = ImageVector.vectorResource(R.drawable.ai),
-                backgroundColor = Color(0xFFFFFAF0)
-            )
-        }
+            Spacer(Modifier.width(16.dp))
 
-        Spacer(modifier = Modifier.weight(1f))
+            Column(Modifier.weight(1f)) {
+                Text("Device Storage",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(Modifier.height(4.dp))
+                Text("128 GB total",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = .7f)
+                )
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = 0.68f,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+                Spacer(Modifier.height(4.dp))
+                Text("87 GB used",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = .7f)
+                )
+            }
 
-        // Bottom Navigation Bar
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp),
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BottomNavItem(
-                    icon = Icons.Default.Home,
-                    label = "Home",
-                    isSelected = true
+            Column(horizontalAlignment = Alignment.End) {
+                Text("87 GB",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-                BottomNavItem(
-                    icon = Icons.Default.SwapHoriz,
-                    label = "Transfer",
-                    isSelected = false
-                )
-                BottomNavItem(
-                    icon = Icons.Default.History,
-                    label = "History",
-                    isSelected = false
-                )
-                BottomNavItem(
-                    icon = Icons.Default.Person,
-                    label = "Profile",
-                    isSelected = false
+                Text("used",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = .7f)
                 )
             }
         }
     }
 }
 
+/* ───────── Feature grid 2×2 ───────── */
+@Composable
+private fun FeatureGrid() {
+
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        FeatureCard(
+            modifier = Modifier.weight(1f),
+            title = "File Transfer",
+            subtitle = "Send & Receive Data",
+            icon = ImageVector.vectorResource(R.drawable.green_arrow)
+        )
+        FeatureCard(
+            modifier = Modifier.weight(1f),
+            title = "Phone Clone",
+            subtitle = "Transfer to new phone",
+            icon = ImageVector.vectorResource(R.drawable.clone)
+        )
+    }
+    Spacer(Modifier.height(16.dp))
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        FeatureCard(
+            modifier = Modifier.weight(1f),
+            title = "Mobile to PC",
+            subtitle = "Share files with laptop",
+            icon = ImageVector.vectorResource(R.drawable.pc)
+        )
+        FeatureCard(
+            modifier = Modifier.weight(1f),
+            title = "AI Assistant",
+            subtitle = "Smart data transfer",
+            icon = ImageVector.vectorResource(R.drawable.ai_asistant)
+        )
+    }
+}
+
+/* ───────── One feature card ───────── */
 @Composable
 fun FeatureCard(
     modifier: Modifier = Modifier,
     title: String,
     subtitle: String,
-    icon: ImageVector,
-    backgroundColor: Color
+    icon: ImageVector
 ) {
+    val dynamic    = LocalDynamicColour.current
+    val iconColor  = if (dynamic) MaterialTheme.colorScheme.primary else Color.Unspecified
+    val textColor  = MaterialTheme.colorScheme.onBackground
+    val subColor   = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+
     Card(
         modifier = modifier.height(120.dp),
-        shape = RoundedCornerShape(16.dp),
+        shape  = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = featureColor(dynamic, MaterialTheme.colorScheme)  // ← new
         )
     ) {
         Column(
-            modifier = Modifier
+            Modifier
                 .fillMaxSize()
                 .padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(40.dp),
+            Icon(icon, null, tint = iconColor, modifier = Modifier.size(40.dp))
+            Spacer(Modifier.height(8.dp))
+            Text(title,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = textColor
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = subtitle,
+            Spacer(Modifier.height(4.dp))
+            Text(subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center,
+                color = subColor,
                 lineHeight = 14.sp
             )
         }
     }
 }
 
+
+/* ───────── Bottom nav bar ───────── */
 @Composable
-fun BottomNavItem(
+private fun SmartBottomBar() {
+    val dynamic   = LocalDynamicColour.current
+    val barColor  = bottomBarColor(dynamic, MaterialTheme.colorScheme)
+
+    NavigationBar(
+        containerColor = barColor,     // 👈 adaptive
+        tonalElevation = 3.dp
+    ) {
+        NavItem(Icons.Default.Home,       "Home",     true )
+        NavItem(Icons.Default.SwapHoriz,  "Transfer", false)
+        NavItem(Icons.Default.History,    "Files",    false)
+        NavItem(Icons.Default.Person,     "Profile",  false)
+    }
+}
+
+
+@Composable
+private fun RowScope.NavItem(
     icon: ImageVector,
     label: String,
-    isSelected: Boolean
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray,
-            modifier = Modifier.size(24.dp)
-        )
+    selected: Boolean
+) = NavigationBarItem(
+    selected = selected,
+    onClick  = { /* TODO */ },
+    icon     = { Icon(icon, contentDescription = label) },
+    label    = { Text(label) },
+    colors   = NavigationBarItemDefaults.colors(
+        selectedIconColor = MaterialTheme.colorScheme.primary,
+        selectedTextColor = MaterialTheme.colorScheme.primary,
+        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        indicatorColor = Color.Transparent
+    )
+)
 
-        Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray
-        )
-    }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    SmartSwitchTheme {
-        MainScreen()
-    }
-}
+
+/* adaptive container colours */
+
+private fun featureColor   (dyn: Boolean, c: ColorScheme) = if (dyn) c.secondaryContainer   else c.surfaceVariant
+private fun bottomBarColor (dyn: Boolean, c: ColorScheme) = if (dyn) c.background    else c.surfaceVariant
+private fun iconBgColor(dynamic: Boolean, c: ColorScheme): Color =
+    if (dynamic) c.primaryContainer else Color(0xFFE5F5FF)
+private fun storagecolor(dynamic: Boolean, colors: ColorScheme): Color =
+    if (dynamic) colors.primaryContainer else colors.surfaceVariant
+
+/* ───────── Previews ───────── */
+@Preview(name = "Light", showBackground = true, showSystemUi = true)
+@Composable fun LightPreview() =
+    SmartSwitchTheme(useDarkTheme = false, dynamicColour = false) { MainScreen() }
+
+@Preview(name = "Dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, showBackground = true,
+    showSystemUi = true
+)
+@Composable fun DarkPreview()  =
+    SmartSwitchTheme(useDarkTheme = true , dynamicColour = false) { MainScreen() }
+
+@Preview(name = "Dynamic Light", showBackground = true, showSystemUi = false)
+@Composable fun DynamicLightPreview() =
+    SmartSwitchTheme(useDarkTheme = false, dynamicColour = true) { MainScreen() }
+
+@Preview(name = "Dynamic Dark", showBackground = true, showSystemUi = true)
+@Composable fun DynamicDarkPreview() =
+    SmartSwitchTheme(useDarkTheme = true, dynamicColour = true) { MainScreen() }

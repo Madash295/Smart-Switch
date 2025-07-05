@@ -1,17 +1,18 @@
 package com.madash.smartswitch
 
-import androidx.compose.animation.*
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
-import androidx.compose.material.Text
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.google.accompanist.navigation.animation.AnimatedNavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.smartswitch.LaunchViewModel
+import com.google.accompanist.navigation.animation.AnimatedNavHost
 
 sealed class Screen(val route: String) {
     object Splash     : Screen("splash")
@@ -61,11 +62,7 @@ fun NavGraph(
         }
 
         composable(Screen.Home.route) {
-                HomeScreen()
+               MainScreen()
         }
     }
-}
-@Composable
-fun HomeScreen() {
-    Text("Welcome to SmartSwitch!")
 }

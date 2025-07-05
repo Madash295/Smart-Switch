@@ -6,11 +6,15 @@ import androidx.compose.material.icons.outlined.PhoneIphone
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.ui.res.vectorResource
+import com.madash.smartswitch.R
+
 @Composable
 fun SmartSwitchScreen(
     onNavigateNext: () -> Unit = {}
@@ -22,20 +26,16 @@ fun SmartSwitchScreen(
     ) {
         /* --- phone = phone row --- */
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Outlined.PhoneIphone, null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp))
+            // Replace R.drawable.splashlogo with your actual SVG resource ID
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.splashlogo),
+                contentDescription = "Logo",
+                tint = MaterialTheme.colorScheme.primary)
 
-            Text("=", color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(horizontal = 16.dp))
 
-            Icon(Icons.Outlined.PhoneIphone, null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp))
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(25.dp))
 
         /* --- title texts --- */
         Text("Smart",

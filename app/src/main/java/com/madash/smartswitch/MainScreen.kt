@@ -1,5 +1,7 @@
 package com.madash.smartswitch
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -14,14 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-private fun storagecard(dynamic: Boolean, colors: ColorScheme): Color =
-    if (dynamic) colors.primaryContainer else colors.surfaceVariant
 
 @Composable
 fun MainScreen() {
@@ -85,23 +86,49 @@ fun MainScreen() {
     }
 }
 /* ───────── Storage card ───────── */
+// Helper to choose the storage card background
+private fun storageCardColor(dynamic: Boolean, c: ColorScheme): Color =
+    if (dynamic) c.primaryContainer else c.surfaceVariant
+
 @Composable
-private fun StorageCard() {
+fun StorageCard() {
+    val context = LocalContext.current
+    // Load real storage in a blocking recall (you can swap to produceState if needed)
+    val storageInfo = remember {
+        StorageUtils.getStorageInfo(context) // returns totalGB, usedGB, usedPercentage
+    }
+
+    // Animate the progress bar
+    val animatedProgress by animateFloatAsState(
+        targetValue = storageInfo.usedPercentage,
+        animationSpec = tween(durationMillis = 1000),
+        label = "storageProgress"
+    )
+
+    // Theme‑aware text colors:
+    val textColor    = MaterialTheme.colorScheme.onSurface
+    val subTextColor = textColor.copy(alpha = 0.7f)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp),
         shape  = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = storagecolor(dynamic = LocalDynamicColour.current, colors = MaterialTheme.colorScheme)
+            containerColor = storageCardColor(
+                dynamic = LocalDynamicColour.current,
+                c       = MaterialTheme.colorScheme
+            )
         )
     ) {
-        Row(Modifier
-            .fillMaxSize()
-            .padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-
+        Row(
+            Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.phone),
+                painter = rememberVectorPainter(image = ImageVector.vectorResource(R.drawable.phone)),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(40.dp)
@@ -110,18 +137,20 @@ private fun StorageCard() {
             Spacer(Modifier.width(16.dp))
 
             Column(Modifier.weight(1f)) {
-                Text("Device Storage",
+                Text(
+                    "Device Storage",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = textColor
                 )
                 Spacer(Modifier.height(4.dp))
-                Text("128 GB total",
+                Text(
+                    "${storageInfo.totalGB} GB total",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = .7f)
+                    color = subTextColor
                 )
                 Spacer(Modifier.height(8.dp))
                 LinearProgressIndicator(
-                    progress = 0.68f,
+                    progress = animatedProgress,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp),
@@ -129,20 +158,23 @@ private fun StorageCard() {
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
                 Spacer(Modifier.height(4.dp))
-                Text("87 GB used",
+                Text(
+                    "${storageInfo.usedGB} GB used",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = .7f)
+                    color = subTextColor
                 )
             }
 
             Column(horizontalAlignment = Alignment.End) {
-                Text("87 GB",
+                Text(
+                    "${storageInfo.usedGB} GB",
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = textColor
                 )
-                Text("used",
+                Text(
+                    "used",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = .7f)
+                    color = subTextColor
                 )
             }
         }
@@ -152,37 +184,40 @@ private fun StorageCard() {
 /* ───────── Feature grid 2×2 ───────── */
 @Composable
 private fun FeatureGrid() {
+    val dynamic = LocalDynamicColour.current
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         FeatureCard(
             modifier = Modifier.weight(1f),
             title = "File Transfer",
             subtitle = "Send & Receive Data",
             icon = ImageVector.vectorResource(R.drawable.green_arrow),
-            gradientColors = listOf(Color(0xFFF0FDF4), Color(0xFFDCFCE7))
+            gradientColors = if (dynamic) null else listOf(Color(0xFFF0FDF4), Color(0xFFDCFCE7))
         )
         FeatureCard(
             modifier = Modifier.weight(1f),
             title = "Phone Clone",
             subtitle = "Transfer to new phone",
             icon = ImageVector.vectorResource(R.drawable.clone),
-            gradientColors = listOf(Color(0xFFEFF6FF), Color(0xFFDBEAFE))
+            gradientColors = if (dynamic) null else listOf(Color(0xFFEFF6FF), Color(0xFFDBEAFE))
         )
     }
+
     Spacer(Modifier.height(16.dp))
+
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         FeatureCard(
             modifier = Modifier.weight(1f),
             title = "Mobile to PC",
             subtitle = "Share files with laptop",
             icon = ImageVector.vectorResource(R.drawable.pc),
-            gradientColors = listOf(Color(0xFFFAF5FF), Color(0xFFF3E8FF))
+            gradientColors = if (dynamic) null else listOf(Color(0xFFFAF5FF), Color(0xFFF3E8FF))
         )
         FeatureCard(
             modifier = Modifier.weight(1f),
             title = "AI Assistant",
             subtitle = "Smart data transfer",
             icon = ImageVector.vectorResource(R.drawable.ai_asistant),
-            gradientColors = listOf(Color(0xFFFDF2F8), Color(0xFFFCE7F3))
+            gradientColors = if (dynamic) null else listOf(Color(0xFFFDF2F8), Color(0xFFFCE7F3))
         )
     }
 }
@@ -194,7 +229,7 @@ fun FeatureCard(
     title: String,
     subtitle: String,
     icon: ImageVector,
-    gradientColors: List<Color>
+    gradientColors: List<Color>?
 ) {
     val dynamic    = LocalDynamicColour.current
     val iconColor  = if (dynamic) MaterialTheme.colorScheme.primary else Color.Unspecified
@@ -217,16 +252,18 @@ fun FeatureCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(45.dp)
-                    .background(
-                        brush = Brush.linearGradient(gradientColors),
-                        shape = RoundedCornerShape(24.dp)
-                    ),
+                    .size(40.dp).let {
+                        if (gradientColors != null) {
+                            it.background(
+                                brush = Brush.linearGradient(gradientColors),
+                                shape = RoundedCornerShape(24.dp))
+                        } else it
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(icon, null, tint = iconColor, modifier = Modifier.size(28.dp))
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(7.dp))
             Text(title,
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                 color = textColor
@@ -288,8 +325,6 @@ private fun featureColor   (dyn: Boolean, c: ColorScheme) = if (dyn) c.secondary
 private fun bottomBarColor (dyn: Boolean, c: ColorScheme) = if (dyn) c.background    else c.surfaceVariant
 private fun iconBgColor(dynamic: Boolean, c: ColorScheme): Color =
     if (dynamic) c.primaryContainer else Color(0xFFE5F5FF)
-private fun storagecolor(dynamic: Boolean, colors: ColorScheme): Color =
-    if (dynamic) colors.primaryContainer else colors.surfaceVariant
 
 /* ───────── Previews ───────── */
 @Preview(name = "Light", showBackground = true, showSystemUi = true)
@@ -312,37 +347,34 @@ private fun storagecolor(dynamic: Boolean, colors: ColorScheme): Color =
 
 @Composable
 private fun NativeAdBlock() {
-    val isDark = isSystemInDarkTheme()
-    val isDynamic = LocalDynamicColour.current
-    val isDynamicDark = isDynamic && isDark
-    val isPlainDark = !isDynamic && isDark
-    val isGrayStyle = isDynamicDark || isPlainDark
 
-    val cardBg = if (isGrayStyle) Color(0xFF23262B) else Color.White
-    val borderCol = if (isGrayStyle) Color(0xFF6B7280) else Color(0xFFE5E7EB)
-    val skeletonCol = if (isGrayStyle) Color(0xFF6B7280) else Color(0xFFF3F4F6)
-    val textCol = if (isGrayStyle) Color(0xFF374151) else Color(0xFF374151)
+
+    val c = MaterialTheme.colorScheme
+    val cardBg      = c.surface
+    val borderCol   = c.outlineVariant
+    val skeletonCol = c.surfaceVariant
+    val textCol     = c.onSurfaceVariant
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(170.dp),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = cardBg
-        ),
+        shape  = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         border = BorderStroke(1.dp, borderCol),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
+
         Column(
-            Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(14.dp)
         ) {
-            // Top skeleton row
+
+            /* --- top skeleton row --- */
             Row(verticalAlignment = Alignment.Top) {
                 Box(
-                    Modifier
+                    modifier = Modifier
                         .size(28.dp)
                         .background(skeletonCol, RoundedCornerShape(6.dp))
                 )
@@ -363,8 +395,10 @@ private fun NativeAdBlock() {
                     )
                 }
             }
+
             Spacer(Modifier.height(10.dp))
-            // More skeleton lines
+
+            /* --- additional skeleton lines --- */
             Box(
                 Modifier
                     .height(10.dp)
@@ -378,8 +412,10 @@ private fun NativeAdBlock() {
                     .fillMaxWidth(0.6f)
                     .background(skeletonCol, RoundedCornerShape(4.dp))
             )
+
             Spacer(Modifier.height(12.dp))
-            // Large ad rectangle
+
+            /* --- ad rectangle --- */
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -388,7 +424,7 @@ private fun NativeAdBlock() {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "Native AD",
+                    text = "Native AD",
                     color = textCol,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -396,3 +432,4 @@ private fun NativeAdBlock() {
         }
     }
 }
+

@@ -1,6 +1,8 @@
 package com.madash.smartswitch
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -9,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -33,47 +36,49 @@ fun MainScreen() {
             Column(
                 modifier = Modifier
                     .weight(1f).padding(16.dp)
-        ) {
-            /* -------- App name row -------- */
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                val dynamic = LocalDynamicColour.current
-                val primary = MaterialTheme.colorScheme.primary
-                val secondary = MaterialTheme.colorScheme.primaryContainer
-                val iconTint = if (dynamic) primary else Color.Unspecified
-                val iconTint2 = if (dynamic) secondary else Color.Unspecified
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            color = primary, // ← always use primary color
-                            shape = RoundedCornerShape(12.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.whitearr),
-                        contentDescription = null,
-                        tint = iconTint2, // ← dynamic = primary tint, else original
-                        modifier = Modifier.size(50.dp)
+            ) {
+                /* -------- App name row -------- */
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val dynamic = LocalDynamicColour.current
+                    val primary = MaterialTheme.colorScheme.primary
+                    val secondary = MaterialTheme.colorScheme.primaryContainer
+                    val iconTint = if (dynamic) primary else Color.Unspecified
+                    val iconTint2 = if (dynamic) secondary else Color.Unspecified
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                color = primary, // ← always use primary color
+                                shape = RoundedCornerShape(12.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.whitearr),
+                            contentDescription = null,
+                            tint = iconTint2, // ← dynamic = primary tint, else original
+                            modifier = Modifier.size(50.dp)
+                        )
+                    }
+
+                    Text(
+                        "Smart Transfer",
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 8.dp)
                     )
                 }
 
-                Text(
-                    "Smart Transfer",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
+                Spacer(Modifier.height(24.dp))
+
+                StorageCard()
+                Spacer(Modifier.height(24.dp))
+                FeatureGrid()
+                Spacer(Modifier.height(20.dp))
+                NativeAdBlock()
+                Spacer(Modifier.weight(1f))
+
             }
-
-            Spacer(Modifier.height(24.dp))
-
-            StorageCard()
-            Spacer(Modifier.height(24.dp))
-            FeatureGrid()
-            Spacer(Modifier.weight(1f))
-
-        }
 
             SmartBottomBar()
         }
@@ -147,19 +152,20 @@ private fun StorageCard() {
 /* ───────── Feature grid 2×2 ───────── */
 @Composable
 private fun FeatureGrid() {
-
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         FeatureCard(
             modifier = Modifier.weight(1f),
             title = "File Transfer",
             subtitle = "Send & Receive Data",
-            icon = ImageVector.vectorResource(R.drawable.green_arrow)
+            icon = ImageVector.vectorResource(R.drawable.green_arrow),
+            gradientColors = listOf(Color(0xFFF0FDF4), Color(0xFFDCFCE7))
         )
         FeatureCard(
             modifier = Modifier.weight(1f),
             title = "Phone Clone",
             subtitle = "Transfer to new phone",
-            icon = ImageVector.vectorResource(R.drawable.clone)
+            icon = ImageVector.vectorResource(R.drawable.clone),
+            gradientColors = listOf(Color(0xFFEFF6FF), Color(0xFFDBEAFE))
         )
     }
     Spacer(Modifier.height(16.dp))
@@ -168,13 +174,15 @@ private fun FeatureGrid() {
             modifier = Modifier.weight(1f),
             title = "Mobile to PC",
             subtitle = "Share files with laptop",
-            icon = ImageVector.vectorResource(R.drawable.pc)
+            icon = ImageVector.vectorResource(R.drawable.pc),
+            gradientColors = listOf(Color(0xFFFAF5FF), Color(0xFFF3E8FF))
         )
         FeatureCard(
             modifier = Modifier.weight(1f),
             title = "AI Assistant",
             subtitle = "Smart data transfer",
-            icon = ImageVector.vectorResource(R.drawable.ai_asistant)
+            icon = ImageVector.vectorResource(R.drawable.ai_asistant),
+            gradientColors = listOf(Color(0xFFFDF2F8), Color(0xFFFCE7F3))
         )
     }
 }
@@ -185,7 +193,8 @@ fun FeatureCard(
     modifier: Modifier = Modifier,
     title: String,
     subtitle: String,
-    icon: ImageVector
+    icon: ImageVector,
+    gradientColors: List<Color>
 ) {
     val dynamic    = LocalDynamicColour.current
     val iconColor  = if (dynamic) MaterialTheme.colorScheme.primary else Color.Unspecified
@@ -196,7 +205,7 @@ fun FeatureCard(
         modifier = modifier.height(120.dp),
         shape  = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = featureColor(dynamic, MaterialTheme.colorScheme)  // ← new
+            containerColor = featureColor(dynamic, MaterialTheme.colorScheme)
         )
     ) {
         Column(
@@ -206,7 +215,17 @@ fun FeatureCard(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start
         ) {
-            Icon(icon, null, tint = iconColor, modifier = Modifier.size(40.dp))
+            Box(
+                modifier = Modifier
+                    .size(45.dp)
+                    .background(
+                        brush = Brush.linearGradient(gradientColors),
+                        shape = RoundedCornerShape(24.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = iconColor, modifier = Modifier.size(28.dp))
+            }
             Spacer(Modifier.height(8.dp))
             Text(title,
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
@@ -290,3 +309,90 @@ private fun storagecolor(dynamic: Boolean, colors: ColorScheme): Color =
 @Preview(name = "Dynamic Dark", showBackground = true, showSystemUi = true)
 @Composable fun DynamicDarkPreview() =
     SmartSwitchTheme(useDarkTheme = true, dynamicColour = true) { MainScreen() }
+
+@Composable
+private fun NativeAdBlock() {
+    val isDark = isSystemInDarkTheme()
+    val isDynamic = LocalDynamicColour.current
+    val isDynamicDark = isDynamic && isDark
+    val isPlainDark = !isDynamic && isDark
+    val isGrayStyle = isDynamicDark || isPlainDark
+
+    val cardBg = if (isGrayStyle) Color(0xFF23262B) else Color.White
+    val borderCol = if (isGrayStyle) Color(0xFF6B7280) else Color(0xFFE5E7EB)
+    val skeletonCol = if (isGrayStyle) Color(0xFF6B7280) else Color(0xFFF3F4F6)
+    val textCol = if (isGrayStyle) Color(0xFF374151) else Color(0xFF374151)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(170.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = cardBg
+        ),
+        border = BorderStroke(1.dp, borderCol),
+        elevation = CardDefaults.cardElevation(0.dp)
+    ) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(14.dp)
+        ) {
+            // Top skeleton row
+            Row(verticalAlignment = Alignment.Top) {
+                Box(
+                    Modifier
+                        .size(28.dp)
+                        .background(skeletonCol, RoundedCornerShape(6.dp))
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(Modifier.weight(1f)) {
+                    Box(
+                        Modifier
+                            .height(10.dp)
+                            .fillMaxWidth(0.7f)
+                            .background(skeletonCol, RoundedCornerShape(4.dp))
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Box(
+                        Modifier
+                            .height(10.dp)
+                            .fillMaxWidth(0.5f)
+                            .background(skeletonCol, RoundedCornerShape(4.dp))
+                    )
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+            // More skeleton lines
+            Box(
+                Modifier
+                    .height(10.dp)
+                    .fillMaxWidth(0.9f)
+                    .background(skeletonCol, RoundedCornerShape(4.dp))
+            )
+            Spacer(Modifier.height(6.dp))
+            Box(
+                Modifier
+                    .height(10.dp)
+                    .fillMaxWidth(0.6f)
+                    .background(skeletonCol, RoundedCornerShape(4.dp))
+            )
+            Spacer(Modifier.height(12.dp))
+            // Large ad rectangle
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(skeletonCol, RoundedCornerShape(8.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "Native AD",
+                    color = textCol,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}

@@ -61,8 +61,11 @@ fun PhoneClone(navController: NavHostController) {
     }
 
 }
+
+
+
 @Composable
 @Preview
 fun PhoneClonePreview(){
-    FileTransfer(navController = NavHostController(LocalContext.current))
+    PhoneClone(navController = NavHostController(LocalContext.current))
 }

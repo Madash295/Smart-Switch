@@ -38,6 +38,7 @@ sealed class Routes(val route: String) {
 
     object About: Routes("about")
 
+    object  SelectFiles: Routes("selectfiles")
 }
 
 @OptIn(ExperimentalAnimationApi::class)

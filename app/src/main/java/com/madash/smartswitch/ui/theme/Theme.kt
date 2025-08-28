@@ -1,58 +1,62 @@
-package com.madash.smartswitch.ui.theme
+package com.madash.smartswitch
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+val LocalDynamicColour = compositionLocalOf { false }
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+/* ---------- STATIC LIGHT / DARK ---------- */
+private val LightColours = lightColorScheme(
+    primary = Color(0xFF00B2FF),
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    background = Color.White,
+    onBackground = Color.Black,
+    surface = Color.White,
+    onSurface = Color.Black,
+    surfaceVariant = Color(0xFFF6F8FA),   // <‑‑  pale grey card shade
+    onSurfaceVariant = Color.Black
 )
+
+private val DarkColours = darkColorScheme(
+    primary = Color(0xFF00B2FF),
+    onPrimary = Color.Black,
+    background = Color(0xFF121212),       // window
+    onBackground = Color.White,
+    surface = Color(0xFF121212),          // same as background
+    onSurface = Color.White,
+    surfaceVariant = Color(0xFF1E1E1E),   // <‑‑ lighter dark for cards
+    onSurfaceVariant = Color.White
+)
+
+
 
 @Composable
 fun SmartSwitchTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+    useDarkTheme : Boolean = isSystemInDarkTheme(),
+    dynamicColour: Boolean = true,
+    content      : @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    val ctx = LocalContext.current
+    val colours = when {
+        dynamicColour && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
+            if (useDarkTheme) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
+        useDarkTheme -> DarkColours
+        else         -> LightColours
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalDynamicColour provides dynamicColour) {   // ← provide
+        MaterialTheme(
+            colorScheme = colours,
+            typography  = Typography(),
+            content     = content
+        )
+    }
 }

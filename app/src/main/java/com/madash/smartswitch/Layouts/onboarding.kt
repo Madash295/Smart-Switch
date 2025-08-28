@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,32 +28,9 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
+import com.madash.smartswitch.com.madash.smartswitch.DataClass.OnboardPage
+import com.madash.smartswitch.com.madash.smartswitch.DataClass.pages
 
-/* ---------- data for each slide ---------- */
-private data class OnboardPage(
-    val title : String,
-    val body  : String,
-    val icon  : Int            // drawable resource ID
-)
-
-/* ---------- your three pages ---------- */
-private val pages = listOf(
-    OnboardPage(
-        "Clone Your Phone",
-        "Transfer all your data, apps, and settings from your old device to your new one seamlessly.",
-        R.drawable.onboardingimg1           // 1st vector
-    ),
-    OnboardPage(
-        "Smart AI Assistant",
-        "Get intelligent help with device setup, file organization, and transfer optimization powered by AI.",
-        R.drawable.onboardingimg1         // 2nd vector
-    ),
-    OnboardPage(
-        "Ready in Minutes",
-        "Enjoy your new phone with everything in place.",
-        R.drawable.onboardingimg1                 // 3rd vector
-    )
-)
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -62,7 +40,10 @@ fun OnboardingScreen(
     val pagerState = rememberPagerState()
     val scope      = rememberCoroutineScope()
 
-    Box(Modifier.fillMaxSize()) {
+    Scaffold {innerPadding ->
+
+
+    Box(Modifier.fillMaxSize().padding(innerPadding)) {
 
         /* ---- Horizontal pager ---- */
         HorizontalPager(
@@ -103,6 +84,7 @@ fun OnboardingScreen(
             ) { Text("Get Started") }
         }
     }
+}
 }
 
 /* ---------- single slide ---------- */

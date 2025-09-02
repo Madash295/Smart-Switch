@@ -1,4 +1,4 @@
-package com.madash.smartswitch.com.madash.smartswitch.util
+package com.madash.smartswitch.util
 
 import android.content.Context
 import android.os.Environment

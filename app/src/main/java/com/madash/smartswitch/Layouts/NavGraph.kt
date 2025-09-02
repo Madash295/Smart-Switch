@@ -15,6 +15,7 @@ import com.example.smartswitch.LaunchViewModel
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.madash.smartswitch.Layouts.FileTransfer
 import com.madash.smartswitch.Layouts.PhoneClone
+import com.madash.smartswitch.Layouts.SelectFiles
 import com.madash.smartswitch.Layouts.SettingsScreen
 
 sealed class Routes(val route: String) {
@@ -94,6 +95,11 @@ fun NavGraph(
 
         composable(Routes.PhoneClone.route){
             PhoneClone(navController)
+        }
+
+        composable(Routes.SelectFiles.route) {
+
+            SelectFiles(navController)
         }
 
         composable(Routes.Settings.route) {

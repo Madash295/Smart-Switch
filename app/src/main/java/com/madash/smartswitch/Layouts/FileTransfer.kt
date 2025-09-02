@@ -1,6 +1,7 @@
 package com.madash.smartswitch.Layouts
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,8 +39,8 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.airbnb.lottie.compose.rememberLottieDynamicProperties
 import com.madash.smartswitch.LocalDynamicColour
-import com.madash.smartswitch.NativeAdBlock
 import com.madash.smartswitch.R
+import com.madash.smartswitch.Routes
 import com.madash.smartswitch.SmartBottomBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,16 +71,15 @@ fun FileTransfer(navController: NavHostController) {
 
 
         ){
-         Maincontent()
+         Maincontent(navController)
         }
 
     }
 
 }
 
-
 @Composable
-fun Maincontent() {
+fun Maincontent(navController: NavHostController) {
     val dynamic = LocalDynamicColour.current
     val dynamicSenderColors = listOf(
         MaterialTheme.colorScheme.secondaryContainer,
@@ -102,47 +102,40 @@ fun Maincontent() {
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Rounded icon/file placeholder
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.filetransfer))
         val dynamicProperties = if (dynamic) {
             rememberLottieDynamicProperties(
-                // Example: Change color of a specific layer (e.g., "Shape Layer 1")
                 com.airbnb.lottie.compose.rememberLottieDynamicProperty(
                     com.airbnb.lottie.LottieProperty.COLOR,
                     MaterialTheme.colorScheme.primary.hashCode(),
-                    "**" // Target all layers
+                    "**"
                 ),
                 com.airbnb.lottie.compose.rememberLottieDynamicProperty(
                     com.airbnb.lottie.LottieProperty.STROKE_COLOR,
                     MaterialTheme.colorScheme.onPrimary.hashCode(),
-                    "**" // Target all layers
+                    "**"
                 )
-                // Add more rememberLottieDynamicProperty calls for other layers
-                // if you want to apply different colors to different parts
-                // or use "**" to apply a single color to everything if that's desired.
+
             )
         } else {
-            // Optionally, define static properties or return null if no dynamic changes are needed
-            // For this example, we'll return null, meaning no dynamic properties are applied
-            // when 'dynamic' is false.
             null
         }
 
         Box(
             modifier = Modifier
-                .size(220.dp) // Reduced size
+                .size(220.dp)
                 .padding(8.dp)
                 .align(Alignment.CenterHorizontally)
                 .background(
-                    color = Color.Transparent, // Make background transparent
+                    color = Color.Transparent,
                 )
         ){
             LottieAnimation(
                 composition = composition,
-                dynamicProperties = dynamicProperties, // Apply dynamic properties for theming
+                dynamicProperties = dynamicProperties,
                 modifier = Modifier
                     .fillMaxSize()
-                    .scale(1.8f) // Fill the Box
+                    .scale(1.8f)
             )
         }
 
@@ -166,33 +159,32 @@ fun Maincontent() {
               text = "Sender",
               subtitle = "Send data from this device",
               gradient = if (dynamic) dynamicSenderColors else staticSenderGradient,
-              icon = painterResource(R.drawable.send) // placeholder icon
+              icon = painterResource(R.drawable.send),
+              navController = navController,
+              route = Routes.SelectFiles.route
           )
           Spacer(modifier = Modifier.height(10.dp))
-          // Receiver Button
           GradientButton(
               text = "Receiver",
               subtitle = "Receive data on this device",
               gradient = if (dynamic) dynamicReceiverColors else staticReceiverGradient,
-              icon = painterResource(R.drawable.receive)
+              icon = painterResource(R.drawable.receive),
+              navController = navController,
+              route = Routes.PhoneClone.route
           )
           Spacer(modifier = Modifier.height(10.dp))
-          // Speed Up Banner
-
-
       }
-//        NativeAdBlock()
       }
 
 }
-
-// Gradient button used for Sender/Receiver
 @Composable
 fun GradientButton(
     text: String,
     subtitle: String,
     gradient: List<Color>,
-    icon: Painter
+    icon: Painter,
+    navController: NavHostController,
+    route: String
 ) {
     val dynamic = LocalDynamicColour.current
     val iconTint = if (dynamic) MaterialTheme.colorScheme.onSecondaryContainer else  Color.White
@@ -205,43 +197,40 @@ fun GradientButton(
                 brush = androidx.compose.ui.graphics.Brush.horizontalGradient(gradient),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp)
             )
-            .padding(horizontal = 32.dp),
-        contentAlignment = Alignment.Center // Center the Row within the Box
+            .padding(horizontal = 32.dp).clickable { navController.navigate(route) },
+        contentAlignment = Alignment.Center
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth() // Allow Row to take full width of the Box
-                .padding(horizontal = 16.dp), // Keep some horizontal padding within the Row
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start // Align items to the start of the Row
+            horizontalArrangement = Arrangement.Start
         ) {
             Icon(
                 icon,
                 contentDescription = null,
                 tint = iconTint,
                 modifier = Modifier
-                    .size(40.dp) // Adjusted icon size
-                    .padding(end = 12.dp) // Adjusted padding
+                    .size(40.dp)
+                    .padding(end = 12.dp)
             )
             Column(
                 modifier = Modifier
-                    .weight(1f), // Ensure text takes available space
-                horizontalAlignment = Alignment.Start, // Align text to the start of the Column
-                verticalArrangement = Arrangement.Center // Center text vertically within the column
+                    .weight(1f),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (dynamic) MaterialTheme.colorScheme.onSecondaryContainer else Color.White,
-                    // Modifier.align(Alignment.Start) removed as Column handles alignment
                 )
                 Text(
                     subtitle,
-
                     style = MaterialTheme.typography.bodySmall,
                     color = if (dynamic) MaterialTheme.colorScheme.onSecondaryContainer.copy(0.9f) else Color.White,
-                    // Modifier.align(Alignment.Start) removed as Column handles alignment
                 )
             }
         }

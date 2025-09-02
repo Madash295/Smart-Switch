@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.madash.smartswitch.com.madash.smartswitch.util.StorageUtils
+import com.madash.smartswitch.util.StorageUtils
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -36,9 +36,6 @@ fun HomeScreen(navController: NavHostController) {
         bottomBar = { SmartBottomBar(navController) }
     ) { innerPadding ->
 
-//        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars),
-//
-//        color = MaterialTheme.colorScheme.background // 👈 dynamic background color
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -75,7 +72,7 @@ fun topappbar(){
                 modifier = Modifier
                     .size(48.dp)
                     .background(
-                        color = primary, // ← always use primary color
+                        color = primary,
                         shape = RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -83,11 +80,10 @@ fun topappbar(){
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.whitearr),
                     contentDescription = null,
-                    tint = iconTint2, // ← dynamic = primary tint, else original
+                    tint = iconTint2,
                     modifier = Modifier.size(50.dp)
                 )
             }
-
             Text(
                 "Smart Transfer",
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
@@ -101,27 +97,22 @@ fun topappbar(){
 }
 
 
-/* ───────── Storage card ───────── */
-// Helper to choose the storage card background
 private fun storageCardColor(dynamic: Boolean, c: ColorScheme): Color =
     if (dynamic) c.primaryContainer else c.surfaceVariant
 
 @Composable
 fun StorageCard() {
     val context = LocalContext.current
-    // Load real storage in a blocking recall (you can swap to produceState if needed)
     val storageInfo = remember {
-        StorageUtils.getStorageInfo(context) // returns totalGB, usedGB, usedPercentage
+        StorageUtils.getStorageInfo(context)
     }
 
-    // Animate the progress bar
     val animatedProgress by animateFloatAsState(
         targetValue = storageInfo.usedPercentage,
         animationSpec = tween(durationMillis = 1000),
         label = "storageProgress"
     )
 
-    // Theme‑aware text colors:
     val textColor    = MaterialTheme.colorScheme.onSurface
     val subTextColor = textColor.copy(alpha = 0.7f)
 
@@ -198,7 +189,6 @@ fun StorageCard() {
     }
 }
 
-/* ───────── Feature grid 2×2 ───────── */
 @Composable
 private fun FeatureGrid(navController: NavHostController) {
     val dynamic = LocalDynamicColour.current
@@ -248,7 +238,6 @@ private fun FeatureGrid(navController: NavHostController) {
     }
 }
 
-/* ───────── One feature card ───────── */
 @Composable
 fun FeatureCard(
     modifier: Modifier = Modifier,
@@ -305,14 +294,12 @@ fun FeatureCard(
 }
 
 
-/* ───────── Bottom nav bar ───────── */
 @Composable
 fun SmartBottomBar(navController: NavHostController) {
     val dynamic   = LocalDynamicColour.current
     val barColor = bottomBarColor(dynamic, MaterialTheme.colorScheme)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-
     NavigationBar(
         containerColor = barColor,     // 👈 adaptive
         tonalElevation = 3.dp
@@ -367,22 +354,21 @@ private fun RowScope.NavItem(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    // Ensure dynamic and static themes use correct Material color values for selected state
     val dynamic = LocalDynamicColour.current
     val selectedIconColor =
-        if (dynamic) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+        if (dynamic) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary
     val selectedTextColor =
-        if (dynamic) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-    val unselectedIconColor =if (dynamic)MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant
-    val unselectedTextColor = if (dynamic)MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant
+        if (dynamic) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary
+    val unselectedIconColor =if (dynamic)MaterialTheme.colorScheme.onBackground.copy(0.4f) else MaterialTheme.colorScheme.onSurfaceVariant
+    val unselectedTextColor = if (dynamic)MaterialTheme.colorScheme.onBackground.copy(0.4f) else MaterialTheme.colorScheme.onSurfaceVariant
     NavigationBarItem(
         selected = selected,
         onClick = onClick,
         icon = { Icon(icon, contentDescription = label) },
         label = { Text(label) },
         colors = NavigationBarItemDefaults.colors(
-            selectedIconColor = selectedIconColor,   // Dynamic and static primary
-            selectedTextColor = selectedTextColor,   // Dynamic and static primary
+            selectedIconColor = selectedIconColor,
+            selectedTextColor = selectedTextColor,
             unselectedIconColor = unselectedIconColor,
             unselectedTextColor = unselectedTextColor,
             indicatorColor = Color.Transparent
@@ -393,14 +379,11 @@ private fun RowScope.NavItem(
 
 
 
-/* adaptive container colours */
-
 private fun featureColor   (dyn: Boolean, c: ColorScheme) = if (dyn) c.secondaryContainer   else c.surfaceVariant
 private fun bottomBarColor (dyn: Boolean, c: ColorScheme) = if (dyn) c.background    else c.surfaceVariant
 private fun iconBgColor(dynamic: Boolean, c: ColorScheme): Color =
     if (dynamic) c.primaryContainer else Color(0xFFE5F5FF)
 
-/* ───────── Previews ───────── */
 @Preview(name = "Light", showBackground = true, showSystemUi = true)
 @Composable fun LightPreview() =
     SmartSwitchTheme(useDarkTheme = false, dynamicColour = false) { HomeScreen(navController = NavHostController(LocalContext.current)) }
@@ -446,7 +429,6 @@ fun NativeAdBlock() {
                 .padding(14.dp)
         ) {
 
-            /* --- top skeleton row --- */
             Row(verticalAlignment = Alignment.Top) {
                 Box(
                     modifier = Modifier
@@ -472,8 +454,6 @@ fun NativeAdBlock() {
             }
 
             Spacer(Modifier.height(10.dp))
-
-            /* --- additional skeleton lines --- */
             Box(
                 Modifier
                     .height(10.dp)
@@ -489,8 +469,6 @@ fun NativeAdBlock() {
             )
 
             Spacer(Modifier.height(12.dp))
-
-            /* --- ad rectangle --- */
             Box(
                 Modifier
                     .fillMaxWidth()

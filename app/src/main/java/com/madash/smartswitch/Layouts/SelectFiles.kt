@@ -1,9 +1,6 @@
 package com.madash.smartswitch.Layouts
 
-import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -26,11 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Android
-import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -56,7 +50,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -77,17 +70,14 @@ import com.madash.smartswitch.DataClass.AppItem
 import com.madash.smartswitch.DataClass.ContactItem
 import com.madash.smartswitch.DataClass.FileItem
 import com.madash.smartswitch.DataClass.MediaItem
+import com.madash.smartswitch.Routes
 import com.madash.smartswitch.SmartSwitchTheme
-import com.madash.smartswitch.util.loadApps
-import com.madash.smartswitch.util.loadArchives
-import com.madash.smartswitch.util.loadContacts
-import com.madash.smartswitch.util.loadDocuments
-import com.madash.smartswitch.util.loadFiles
-import com.madash.smartswitch.util.loadMusic
-import com.madash.smartswitch.util.loadPhotos
-import com.madash.smartswitch.util.loadVideos
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.madash.smartswitch.util.getMediaTypeColor
+import com.madash.smartswitch.util.getMediaTypeIcon
+import com.madash.smartswitch.util.getMediaTypeIconTint
+import com.madash.smartswitch.util.getRequiredPermissions
+import com.madash.smartswitch.util.isSameDay
+import com.madash.smartswitch.util.loadDataForCurrentTab
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -203,7 +193,18 @@ fun SelectFiles(navController: NavHostController) {
                         fontWeight = FontWeight.Medium
                     )
                     Button(
-                        onClick = { /* handle send - navigate to next screen */ },
+                        onClick = {
+                            if (totalSelectedItems > 0) {
+                                navController.navigate(
+                                    Routes.ScanningReceiver.createRoute(
+                                        mediaCount = checkedMediaItems.size,
+                                        appCount = checkedAppItems.size,
+                                        contactCount = checkedContactItems.size,
+                                        fileCount = checkedFileItems.size
+                                    )
+                                )
+                            }
+                        },
                         enabled = totalSelectedItems > 0
                     ) {
                         Text("Send")
@@ -844,7 +845,7 @@ fun MediaListItem(
             )
             Text(
                 text = item.size,
-                fontSize= 12.sp,
+                fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 1.dp)
             )
@@ -1051,141 +1052,6 @@ fun FileListItem(
             modifier = Modifier.size(28.dp)
         )
     }
-}
-
-// Helper functions and data loading functions
-private suspend fun loadDataForCurrentTab(
-    tabIndex: Int,
-    context: Context,
-    onResult: (List<MediaItem>, List<AppItem>, List<ContactItem>, List<FileItem>) -> Unit
-) {
-    withContext(Dispatchers.IO) {
-        when (tabIndex) {
-            0 -> { // Photos
-                val photos = loadPhotos(context)
-                withContext(Dispatchers.Main) {
-                    onResult(photos, emptyList(), emptyList(), emptyList())
-                }
-            }
-            1 -> { // Videos
-                val videos = loadVideos(context)
-                withContext(Dispatchers.Main) {
-                    onResult(videos, emptyList(), emptyList(), emptyList())
-                }
-            }
-            2 -> { // Music
-                val music = loadMusic(context)
-                withContext(Dispatchers.Main) {
-                    onResult(music, emptyList(), emptyList(), emptyList())
-                }
-            }
-            3 -> { // Contacts
-                val contacts = loadContacts(context)
-                withContext(Dispatchers.Main) {
-                    onResult(emptyList(), emptyList(), contacts, emptyList())
-                }
-            }
-            4 -> { // Apps
-                val apps = loadApps(context)
-                withContext(Dispatchers.Main) {
-                    onResult(emptyList(), apps, emptyList(), emptyList())
-                }
-            }
-            5 -> { // Documents
-                val documents = loadDocuments(context)
-                withContext(Dispatchers.Main) {
-                    onResult(documents, emptyList(), emptyList(), emptyList())
-                }
-            }
-            6 -> { // Archives
-                val archives = loadArchives(context)
-                withContext(Dispatchers.Main) {
-                    onResult(archives, emptyList(), emptyList(), emptyList())
-                }
-            }
-            7 -> { // Files
-                val files = loadFiles(context)
-                withContext(Dispatchers.Main) {
-                    onResult(emptyList(), emptyList(), emptyList(), files)
-                }
-            }
-        }
-    }
-}
-
-private fun getRequiredPermissions(tabIndex: Int): List<String> {
-    return when (tabIndex) {
-        0, 1, 2, 5, 6 -> { // Photos, Videos, Music, Documents, Archives
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                when (tabIndex) {
-                    0 -> listOf(Manifest.permission.READ_MEDIA_IMAGES)
-                    1 -> listOf(Manifest.permission.READ_MEDIA_VIDEO)
-                    2 -> listOf(Manifest.permission.READ_MEDIA_AUDIO)
-                    else -> listOf(
-                        Manifest.permission.READ_MEDIA_IMAGES,
-                        Manifest.permission.READ_MEDIA_VIDEO,
-                        Manifest.permission.READ_MEDIA_AUDIO
-                    )
-                }
-            } else {
-                listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-        }
-        3 -> listOf(Manifest.permission.READ_CONTACTS) // Contacts
-        7 -> { // Files
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                listOf(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
-            } else {
-                listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-        }
-        else -> emptyList() // Apps don't need special permissions
-    }
-}
-
-private fun getMediaTypeIcon(mediaType: MediaType): ImageVector {
-    return when (mediaType) {
-        MediaType.MUSIC -> Icons.Filled.MusicNote
-        MediaType.DOCUMENT -> Icons.Filled.Description
-        MediaType.ARCHIVE -> Icons.Filled.Archive
-        MediaType.APK -> Icons.Filled.Android
-        MediaType.CONTACT -> Icons.Filled.Person
-        MediaType.FOLDER -> Icons.Filled.Folder
-        else -> Icons.AutoMirrored.Filled.List
-    }
-}
-
-private fun getMediaTypeColor(mediaType: MediaType): Color {
-    return when (mediaType) {
-        MediaType.PHOTO -> Color(0xFFE3F2FD)
-        MediaType.VIDEO -> Color(0xFFE8F5E8)
-        MediaType.MUSIC -> Color(0xFFFFF3E0)
-        MediaType.DOCUMENT -> Color(0xFFF3E5F5)
-        MediaType.ARCHIVE -> Color(0xFFE0F2F1)
-        MediaType.APK -> Color(0xFFE8F5E8)
-        MediaType.CONTACT -> Color(0xFFE8F5E8)
-        MediaType.FOLDER -> Color(0xFFFFF8E1)
-        else -> Color(0xFFE5FAFF)
-    }
-}
-
-private fun getMediaTypeIconTint(mediaType: MediaType): Color {
-    return when (mediaType) {
-        MediaType.PHOTO -> Color(0xFF2196F3)
-        MediaType.VIDEO -> Color(0xFF4CAF50)
-        MediaType.MUSIC -> Color(0xFFFF9800)
-        MediaType.DOCUMENT -> Color(0xFF9C27B0)
-        MediaType.ARCHIVE -> Color(0xFF009688)
-        MediaType.APK -> Color(0xFF4CAF50)
-        MediaType.CONTACT -> Color(0xFF4CAF50)
-        MediaType.FOLDER -> Color(0xFFFFC107)
-        else -> Color(0xFF04C2FB)
-    }
-}
-
-private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
-    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-            cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
 }
 
 @Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7_PRO)

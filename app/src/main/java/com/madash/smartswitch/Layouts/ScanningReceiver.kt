@@ -54,18 +54,27 @@ import com.madash.smartswitch.DataClass.DeviceStatus
 import com.madash.smartswitch.DataClass.DeviceType
 import com.madash.smartswitch.LocalDynamicColour
 import com.madash.smartswitch.R
+import com.madash.smartswitch.Routes
 import com.madash.smartswitch.SmartSwitchTheme
+import com.madash.smartswitch.util.getDeviceIconBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanningReceiver(navController: NavHostController) {
+fun ScanningReceiver(
+    navController: NavHostController,
+    mediaCount: Int? = null,
+    appCount: Int? = null,
+    contactCount: Int? = null,
+    fileCount: Int? = null
+) {
     val devices = remember { getSampleDevices() }
+    val totalCount = (mediaCount ?: 0) + (appCount ?: 0) + (contactCount ?: 0) + (fileCount ?: 0)
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {  Text(
-                    "File Transfer",
+                    "Send Files",
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 8.dp)
@@ -91,14 +100,16 @@ fun ScanningReceiver(navController: NavHostController) {
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Scanning Animation
+
+
+
             ScanningAnimation()
 
             Spacer(modifier = Modifier.height(18.dp))
 
             Text(
                 text = "Scanning Devices",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onBackground
             )
 
@@ -137,7 +148,8 @@ fun ScanningReceiver(navController: NavHostController) {
             ) {
                 items(devices) { device ->
                     DeviceCard(device = device) {
-                        // Handle device selection if needed
+                        // Handle device selection - you can navigate to transfer screen here
+                        // The selected file counts are: media=$mediaCount, apps=$appCount, contacts=$contactCount, files=$fileCount
                     }
                 }
             }
@@ -150,7 +162,7 @@ fun ScanningReceiver(navController: NavHostController) {
                 contentAlignment = Alignment.BottomCenter // Align content to bottom center
             ) {
                 QRCodeButton {
-                    // Handle QR code scanning
+                    navController.navigate(Routes.ScanQr.route)
                 }
             }
         }
@@ -218,7 +230,7 @@ fun ScanningAnimation() {
         ) {
             val iconTint = if (dynamic) MaterialTheme.colorScheme.primaryContainer else Color.White
             Icon(
-                painter = painterResource(R.drawable.mainscan),
+                painter = painterResource(R.drawable.sendnew),
                 contentDescription = "Phone",
                 tint = iconTint,
                 modifier = Modifier.size(48.dp)
@@ -236,7 +248,7 @@ fun DeviceCard(
 ) {
     val dynamic = LocalDynamicColour.current
     val backgroundColor = if (dynamic) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+        MaterialTheme.colorScheme.primaryContainer
     } else {
         MaterialTheme.colorScheme.surface
     }
@@ -337,7 +349,8 @@ fun QRCodeButton(onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .padding(12.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
@@ -358,22 +371,7 @@ fun QRCodeButton(onClick: () -> Unit) {
     }
 }
 
-@Composable
-fun getDeviceIconBackground(deviceType: DeviceType, dynamic: Boolean): Color {
-    return if (dynamic) {
-        when (deviceType) {
-            DeviceType.PHONE -> MaterialTheme.colorScheme.primary
-            DeviceType.TABLET -> MaterialTheme.colorScheme.secondary
-            DeviceType.LAPTOP, DeviceType.DESKTOP -> MaterialTheme.colorScheme.tertiary
-        }
-    } else {
-        when (deviceType) {
-            DeviceType.PHONE -> Color(0xFF4CAF50)
-            DeviceType.TABLET -> Color(0xFF2196F3)
-            DeviceType.LAPTOP, DeviceType.DESKTOP -> Color(0xFF9C27B0)
-        }
-    }
-}
+
 
 fun getSampleDevices(): List<Device> {
     return listOf(

@@ -11,10 +11,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import com.example.smartswitch.LaunchViewModel
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.madash.smartswitch.Layouts.FileTransfer
 import com.madash.smartswitch.Layouts.PhoneClone
+import com.madash.smartswitch.Layouts.ScanQrCode
 import com.madash.smartswitch.Layouts.ScanningReceiver
 import com.madash.smartswitch.Layouts.SelectFiles
 import com.madash.smartswitch.Layouts.SettingsScreen
@@ -42,7 +45,14 @@ sealed class Routes(val route: String) {
 
     object  SelectFiles: Routes("selectfiles")
 
-    object ScanningReceiver : Routes("scanningreceiver")
+    object ScanningReceiver :
+        Routes("scanningreceiver/{mediaCount}/{appCount}/{contactCount}/{fileCount}") {
+        fun createRoute(mediaCount: Int, appCount: Int, contactCount: Int, fileCount: Int): String {
+            return "scanningreceiver/$mediaCount/$appCount/$contactCount/$fileCount"
+        }
+    }
+
+    object ScanQr: Routes("scanqr")
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -89,11 +99,11 @@ fun NavGraph(
         }
 
         composable(Routes.Home.route) {
-               HomeScreen(navController)
+            HomeScreen(navController)
         }
 
         composable(Routes.FileTransfer.route) {
-           FileTransfer(navController)
+            FileTransfer(navController)
         }
 
         composable(Routes.PhoneClone.route){
@@ -101,7 +111,6 @@ fun NavGraph(
         }
 
         composable(Routes.SelectFiles.route) {
-
             SelectFiles(navController)
         }
 
@@ -113,8 +122,34 @@ fun NavGraph(
             )
         }
 
-        composable(Routes.ScanningReceiver.route) {
-            ScanningReceiver(navController)
+        composable(
+            Routes.ScanningReceiver.route,
+            arguments = listOf(
+                navArgument("mediaCount") {
+                    type = NavType.IntType
+                },
+                navArgument("appCount") {
+                    type = NavType.IntType
+                },
+                navArgument("contactCount") {
+                    type = NavType.IntType
+                },
+                navArgument("fileCount") {
+                    type = NavType.IntType
+                }
+            )
+        ) {
+            ScanningReceiver(
+                navController,
+                it.arguments?.getInt("mediaCount"),
+                it.arguments?.getInt("appCount"),
+                it.arguments?.getInt("contactCount"),
+                it.arguments?.getInt("fileCount")
+            )
+        }
+
+        composable(Routes.ScanQr.route) {
+            ScanQrCode(navController)
         }
     }
 }

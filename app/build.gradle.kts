@@ -79,7 +79,7 @@ dependencies {
     implementation(libs.androidx.camera.extensions)
 // ML Kit Barcode Scanning
     implementation(libs.barcode.scanning)
-
+// Kotlinx Serialization JSON
 
     implementation(libs.coil.compose)
     implementation(libs.coil.video)

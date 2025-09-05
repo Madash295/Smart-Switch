@@ -5,22 +5,20 @@ import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
 import android.provider.ContactsContract
 import android.provider.MediaStore
+import android.util.Log
 import com.madash.smartswitch.DataClass.AppItem
 import com.madash.smartswitch.DataClass.ContactItem
 import com.madash.smartswitch.DataClass.FileItem
 import com.madash.smartswitch.DataClass.MediaItem
 import com.madash.smartswitch.Layouts.MediaType
-
 import java.io.File
 
 
-public fun loadPhotos(context: Context): List<MediaItem> {
+fun loadPhotos(context: Context): List<MediaItem> {
     val photos = mutableListOf<MediaItem>()
     val projection = arrayOf(
         MediaStore.Images.Media._ID,
@@ -57,7 +55,7 @@ public fun loadPhotos(context: Context): List<MediaItem> {
     return photos
 }
 
-public fun loadVideos(context: Context): List<MediaItem> {
+ fun loadVideos(context: Context): List<MediaItem> {
     val videos = mutableListOf<MediaItem>()
     val projection = arrayOf(
         MediaStore.Video.Media._ID,
@@ -94,7 +92,7 @@ public fun loadVideos(context: Context): List<MediaItem> {
     return videos
 }
 
-public fun loadMusic(context: Context): List<MediaItem> {
+ fun loadMusic(context: Context): List<MediaItem> {
     val music = mutableListOf<MediaItem>()
     val projection = arrayOf(
         MediaStore.Audio.Media._ID,
@@ -131,7 +129,7 @@ public fun loadMusic(context: Context): List<MediaItem> {
     return music
 }
 
-public fun loadContacts(context: Context): List<ContactItem> {
+fun loadContacts(context: Context): List<ContactItem> {
     val contacts = mutableListOf<ContactItem>()
     val projection = arrayOf(
         ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
@@ -187,15 +185,16 @@ fun loadApps(context: Context): List<AppItem> {
         val icon = try {
             packageManager.getApplicationIcon(appInfo)
         } catch (e: Exception) {
+            Log.e("DataLoader", "Error getting app icon for $name: ${e.message}")
             null
         }
         val apkPath = appInfo.sourceDir
         val size = try {
             formatFileSize(File(apkPath).length())
         } catch (e: Exception) {
+            Log.e("DataLoader", "Error getting app size for $name: ${e.message}")
             "N/A"
         }
-
         apps.add(AppItem(appInfo.packageName, name, icon, size, apkPath, false))
     }
 
@@ -204,7 +203,7 @@ fun loadApps(context: Context): List<AppItem> {
 
 
 
-public fun loadDocuments(context: Context): List<MediaItem> {
+ fun loadDocuments(context: Context): List<MediaItem> {
     val documents = mutableListOf<MediaItem>()
     val projection = arrayOf(
         MediaStore.Files.FileColumns._ID,
@@ -246,7 +245,7 @@ public fun loadDocuments(context: Context): List<MediaItem> {
     return documents
 }
 
-public fun loadArchives(context: Context): List<MediaItem> {
+ fun loadArchives(context: Context): List<MediaItem> {
     val archives = mutableListOf<MediaItem>()
     val projection = arrayOf(
         MediaStore.Files.FileColumns._ID,
@@ -288,7 +287,7 @@ public fun loadArchives(context: Context): List<MediaItem> {
     return archives
 }
 
-public fun loadFiles(context: Context): List<FileItem> {
+ fun loadFiles(context: Context): List<FileItem> {
     val files = mutableListOf<FileItem>()
 
     // Load files from different directories based on Android version
@@ -343,6 +342,7 @@ private fun loadFilesFromDirectory(directory: File, files: MutableList<FileItem>
         }
     } catch (e: SecurityException) {
         // Directory not accessible
+        Log.e("DataLoader", "Directory not accessible: ${directory.absolutePath}", e)
     }
 }
 

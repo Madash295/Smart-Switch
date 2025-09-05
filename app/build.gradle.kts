@@ -70,7 +70,18 @@ dependencies {
 
     implementation(libs.lottie.compose)
 
+
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.video)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.camera.extensions)
+// ML Kit Barcode Scanning
+    implementation(libs.barcode.scanning)
+
+
     implementation(libs.coil.compose)
     implementation(libs.coil.video)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+    implementation(libs.kotlinx.coroutines.android)
 }

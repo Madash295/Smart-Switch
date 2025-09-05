@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -24,14 +23,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
@@ -60,8 +58,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.consumeAllChanges
-
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -81,7 +77,6 @@ import com.madash.smartswitch.DataClass.AppItem
 import com.madash.smartswitch.DataClass.ContactItem
 import com.madash.smartswitch.DataClass.FileItem
 import com.madash.smartswitch.DataClass.MediaItem
-import com.madash.smartswitch.SmartBottomBar
 import com.madash.smartswitch.SmartSwitchTheme
 import com.madash.smartswitch.util.loadApps
 import com.madash.smartswitch.util.loadArchives
@@ -182,7 +177,7 @@ fun SelectFiles(navController: NavHostController) {
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -195,7 +190,7 @@ fun SelectFiles(navController: NavHostController) {
                 .fillMaxSize()
                 .pointerInput(selectedTab) {
                     detectHorizontalDragGestures { change, dragAmount ->
-                        change.consumeAllChanges()
+                        change.consume()
                         if (dragAmount > 40) {
                             if (selectedTab > 0) selectedTab--
                         }
@@ -333,7 +328,7 @@ fun SectionedMediaDisplay(
             if (showGridToggle) {
                 IconButton(onClick = onGridToggle) {
                     Icon(
-                        if (isGrid) Icons.Filled.List else Icons.Filled.GridView,
+                        if (isGrid) Icons.AutoMirrored.Filled.List else Icons.Filled.GridView,
                         contentDescription = if (isGrid) "List" else "Grid"
                     )
                 }

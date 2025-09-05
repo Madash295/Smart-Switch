@@ -92,17 +92,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-// Data classes for different file types
-
-
 enum class MediaType {
     PHOTO, VIDEO, MUSIC, DOCUMENT, ARCHIVE, APK, CONTACT, FOLDER, FILE
 }
-
-
-
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,14 +113,26 @@ fun SelectFiles(navController: NavHostController) {
     var appItems by remember { mutableStateOf<List<AppItem>>(emptyList()) }
     var contactItems by remember { mutableStateOf<List<ContactItem>>(emptyList()) }
     var fileItems by remember { mutableStateOf<List<FileItem>>(emptyList()) }
-    val dynamic = false // Assuming this is defined elsewhere or set as needed
 
-    val selectedIconColor =         if (dynamic) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary
-    val selectedTextColor =         if (dynamic) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary
-    val unselectedIconColor =if (dynamic)MaterialTheme.colorScheme.onBackground.copy(0.4f) else MaterialTheme.colorScheme.onSurfaceVariant
-    val unselectedTextColor = if (dynamic)MaterialTheme.colorScheme.onBackground.copy(0.4f) else MaterialTheme.colorScheme.onSurfaceVariant
+    // Selection state for all tabs
+    var checkedMediaItems by remember { mutableStateOf(setOf<Int>()) }
+    var checkedAppItems by remember { mutableStateOf(setOf<String>()) }
+    var checkedContactItems by remember { mutableStateOf(setOf<Long>()) }
+    var checkedFileItems by remember { mutableStateOf(setOf<String>()) }
 
+    // Calculate total selected items across all tabs
+    val totalSelectedItems by remember {
+        derivedStateOf {
+            checkedMediaItems.size + checkedAppItems.size + checkedContactItems.size + checkedFileItems.size
+        }
+    }
 
+    val dynamic = false
+
+    val selectedIconColor = if (dynamic) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary
+    val selectedTextColor = if (dynamic) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary
+    val unselectedIconColor = if (dynamic) MaterialTheme.colorScheme.onBackground.copy(0.4f) else MaterialTheme.colorScheme.onSurfaceVariant
+    val unselectedTextColor = if (dynamic) MaterialTheme.colorScheme.onBackground.copy(0.4f) else MaterialTheme.colorScheme.onSurfaceVariant
 
     val context = LocalContext.current
 
@@ -160,6 +164,7 @@ fun SelectFiles(navController: NavHostController) {
                 isLoading = false
             }
         } else {
+            isLoading = false
             permissionLauncher.launch(requiredPermissions.toTypedArray())
         }
     }
@@ -182,7 +187,30 @@ fun SelectFiles(navController: NavHostController) {
                 }
             )
         },
-
+        bottomBar = {
+            // Fixed bottom action bar that shows total count from all tabs
+            Surface(shadowElevation = 8.dp) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "$totalSelectedItems Items Selected",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Button(
+                        onClick = { /* handle send - navigate to next screen */ },
+                        enabled = totalSelectedItems > 0
+                    ) {
+                        Text("Send")
+                    }
+                }
+            }
+        }
     ) { internalPadding ->
         Column(
             modifier = Modifier
@@ -222,7 +250,6 @@ fun SelectFiles(navController: NavHostController) {
                         },
                         selectedContentColor = selectedIconColor,
                         unselectedContentColor = unselectedIconColor
-
                     )
                 }
             }
@@ -254,7 +281,11 @@ fun SelectFiles(navController: NavHostController) {
                             items = mediaItems,
                             isGrid = isGrid,
                             onGridToggle = { isGrid = !isGrid },
-                            mediaType = if (selectedTab == 0) MediaType.PHOTO else MediaType.VIDEO
+                            mediaType = if (selectedTab == 0) MediaType.PHOTO else MediaType.VIDEO,
+                            checkedItems = checkedMediaItems,
+                            onCheckedChange = { id, checked ->
+                                checkedMediaItems = if (checked) checkedMediaItems + id else checkedMediaItems - id
+                            }
                         )
                     }
                     2 -> { // Music - List only
@@ -263,14 +294,30 @@ fun SelectFiles(navController: NavHostController) {
                             isGrid = false,
                             onGridToggle = { },
                             mediaType = MediaType.MUSIC,
-                            showGridToggle = false
+                            showGridToggle = false,
+                            checkedItems = checkedMediaItems,
+                            onCheckedChange = { id, checked ->
+                                checkedMediaItems = if (checked) checkedMediaItems + id else checkedMediaItems - id
+                            }
                         )
                     }
                     3 -> { // Contacts - List only
-                        ContactsDisplay(contacts = contactItems)
+                        ContactsDisplay(
+                            contacts = contactItems,
+                            checkedContacts = checkedContactItems,
+                            onCheckedChange = { id, checked ->
+                                checkedContactItems = if (checked) checkedContactItems + id else checkedContactItems - id
+                            }
+                        )
                     }
                     4 -> { // Apps - List only
-                        AppsDisplay(apps = appItems)
+                        AppsDisplay(
+                            apps = appItems,
+                            checkedApps = checkedAppItems,
+                            onCheckedChange = { packageName, checked ->
+                                checkedAppItems = if (checked) checkedAppItems + packageName else checkedAppItems - packageName
+                            }
+                        )
                     }
                     5, 6 -> { // Documents, Archives - List only
                         SectionedMediaDisplay(
@@ -278,11 +325,21 @@ fun SelectFiles(navController: NavHostController) {
                             isGrid = false,
                             onGridToggle = { },
                             mediaType = if (selectedTab == 5) MediaType.DOCUMENT else MediaType.ARCHIVE,
-                            showGridToggle = false
+                            showGridToggle = false,
+                            checkedItems = checkedMediaItems,
+                            onCheckedChange = { id, checked ->
+                                checkedMediaItems = if (checked) checkedMediaItems + id else checkedMediaItems - id
+                            }
                         )
                     }
                     7 -> { // Files - List only
-                        FilesDisplay(files = fileItems)
+                        FilesDisplay(
+                            files = fileItems,
+                            checkedFiles = checkedFileItems,
+                            onCheckedChange = { path, checked ->
+                                checkedFileItems = if (checked) checkedFileItems + path else checkedFileItems - path
+                            }
+                        )
                     }
                 }
             }
@@ -296,7 +353,9 @@ fun SectionedMediaDisplay(
     isGrid: Boolean,
     onGridToggle: () -> Unit,
     mediaType: MediaType,
-    showGridToggle: Boolean = true
+    showGridToggle: Boolean = true,
+    checkedItems: Set<Int>,
+    onCheckedChange: (Int, Boolean) -> Unit
 ) {
     val groupedItems = items.groupBy { item ->
         val calendar = Calendar.getInstance()
@@ -313,8 +372,7 @@ fun SectionedMediaDisplay(
     }
 
     val allItemIds = items.map { it.id.toInt() }
-    var checkedItems by remember { mutableStateOf(setOf<Int>()) }
-    val isAllSelected by remember { derivedStateOf { checkedItems.size == allItemIds.size } }
+    val isAllSelected by remember { derivedStateOf { checkedItems.containsAll(allItemIds) && allItemIds.isNotEmpty() } }
 
     Column {
         // Top controls
@@ -356,7 +414,9 @@ fun SectionedMediaDisplay(
                     Checkbox(
                         checked = isAllSelected,
                         onCheckedChange = { checked ->
-                            checkedItems = if (checked) checkedItems.union(allItemIds) else checkedItems.minus(allItemIds)
+                            allItemIds.forEach { id ->
+                                onCheckedChange(id, checked)
+                            }
                         },
                         modifier = Modifier.size(24.dp)
                     )
@@ -372,32 +432,200 @@ fun SectionedMediaDisplay(
                         title = date,
                         items = dateItems,
                         checkedItems = checkedItems,
-                        onCheckedChange = { id, checked ->
-                            checkedItems = if (checked) checkedItems + id else checkedItems - id
-                        },
+                        onCheckedChange = onCheckedChange,
                         isGrid = isGrid && showGridToggle,
                         mediaType = mediaType
                     )
                 }
             }
         }
+    }
+}
 
-        // Bottom action bar
-        Surface(shadowElevation = 2.dp) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "${checkedItems.size} ${mediaType.name.lowercase().replaceFirstChar { it.uppercase() }} Selected",
-                    style = MaterialTheme.typography.bodyLarge
+@Composable
+fun ContactsDisplay(
+    contacts: List<ContactItem>,
+    checkedContacts: Set<Long>,
+    onCheckedChange: (Long, Boolean) -> Unit
+) {
+    val isAllSelected by remember {
+        derivedStateOf {
+            contacts.isNotEmpty() && contacts.all { checkedContacts.contains(it.id) }
+        }
+    }
+
+    Column {
+        // Select all header
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, end = 10.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                Modifier.background(
+                    MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(16.dp)
                 )
-                Button(onClick = { /* handle send */ }) {
-                    Text("Send")
+            ) {
+                Row(
+                    Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Select All",
+                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    Checkbox(
+                        checked = isAllSelected,
+                        onCheckedChange = { checked ->
+                            contacts.forEach { contact ->
+                                onCheckedChange(contact.id, checked)
+                            }
+                        },
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
+            }
+        }
+
+        LazyColumn {
+            items(contacts) { contact ->
+                ContactListItem(
+                    contact = contact,
+                    checked = checkedContacts.contains(contact.id),
+                    onCheckedChange = { checked -> onCheckedChange(contact.id, checked) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AppsDisplay(
+    apps: List<AppItem>,
+    checkedApps: Set<String>,
+    onCheckedChange: (String, Boolean) -> Unit
+) {
+    val isAllSelected by remember {
+        derivedStateOf {
+            apps.isNotEmpty() && apps.all { checkedApps.contains(it.packageName) }
+        }
+    }
+
+    Column {
+        // Select all header
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, end = 10.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                Modifier.background(
+                    MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(16.dp)
+                )
+            ) {
+                Row(
+                    Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Select All",
+                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    Checkbox(
+                        checked = isAllSelected,
+                        onCheckedChange = { checked ->
+                            apps.forEach { app ->
+                                onCheckedChange(app.packageName, checked)
+                            }
+                        },
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+
+        LazyColumn {
+            items(apps) { app ->
+                AppListItem(
+                    app = app,
+                    checked = checkedApps.contains(app.packageName),
+                    onCheckedChange = { checked -> onCheckedChange(app.packageName, checked) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun FilesDisplay(
+    files: List<FileItem>,
+    checkedFiles: Set<String>,
+    onCheckedChange: (String, Boolean) -> Unit
+) {
+    val isAllSelected by remember {
+        derivedStateOf {
+            files.isNotEmpty() && files.all { checkedFiles.contains(it.path) }
+        }
+    }
+
+    Column {
+        // Select all header
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, end = 10.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                Modifier.background(
+                    MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(16.dp)
+                )
+            ) {
+                Row(
+                    Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Select All",
+                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    Checkbox(
+                        checked = isAllSelected,
+                        onCheckedChange = { checked ->
+                            files.forEach { file ->
+                                onCheckedChange(file.path, checked)
+                            }
+                        },
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+
+        LazyColumn {
+            items(files) { file ->
+                FileListItem(
+                    file = file,
+                    checked = checkedFiles.contains(file.path),
+                    onCheckedChange = { checked -> onCheckedChange(file.path, checked) }
+                )
             }
         }
     }
@@ -423,7 +651,7 @@ fun MediaSection(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Select ", fontSize = 12.sp)
             Checkbox(
-                checked = items.all { checkedItems.contains(it.id.toInt()) },
+                checked = items.isNotEmpty() && items.all { checkedItems.contains(it.id.toInt()) },
                 onCheckedChange = { checked ->
                     items.forEach { onCheckedChange(it.id.toInt(), checked) }
                 },
@@ -490,7 +718,6 @@ fun MediaGridItem(
     ) {
         if (item.type == MediaType.PHOTO || item.type == MediaType.VIDEO) {
             if (item.type == MediaType.VIDEO) {
-                // Use Coil's video thumbnail support for video
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.uri)
@@ -541,6 +768,7 @@ fun MediaGridItem(
         }
     }
 }
+
 @Composable
 fun MediaListItem(
     item: MediaItem,
@@ -556,21 +784,19 @@ fun MediaListItem(
                 shape = RoundedCornerShape(24.dp)
             )
             .fillMaxWidth()
-            .height(84.dp) // reduced height for tighter alignment
+            .height(84.dp)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        // Icon or thumbnail
         Box(
             Modifier
-                .size(48.dp) // slightly smaller thumbnail
+                .size(48.dp)
                 .background(getMediaTypeColor(mediaType), shape = RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
             if (mediaType == MediaType.PHOTO || mediaType == MediaType.VIDEO) {
                 if (mediaType == MediaType.VIDEO) {
-                    // Use Coil's video thumbnail support for video
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(item.uri)
@@ -597,7 +823,7 @@ fun MediaListItem(
                     imageVector = getMediaTypeIcon(mediaType),
                     contentDescription = null,
                     tint = getMediaTypeIconTint(mediaType),
-                    modifier = Modifier.size(24.dp) // smaller icon
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
@@ -606,11 +832,11 @@ fun MediaListItem(
             Modifier
                 .weight(1f)
                 .padding(start = 12.dp, end = 12.dp),
-            verticalArrangement = Arrangement.SpaceEvenly // centers text vertically
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Text(
                 text = item.name,
-                fontSize = 14.sp, // reduced
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
@@ -618,7 +844,7 @@ fun MediaListItem(
             )
             Text(
                 text = item.size,
-                fontSize= 12.sp, // reduced
+                fontSize= 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 1.dp)
             )
@@ -627,88 +853,8 @@ fun MediaListItem(
         Checkbox(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            modifier = Modifier.size(24.dp) // slightly smaller checkbox
+            modifier = Modifier.size(24.dp)
         )
-    }
-}
-
-
-@Composable
-fun ContactsDisplay(contacts: List<ContactItem>) {
-    var checkedContacts by remember { mutableStateOf(setOf<Long>()) }
-    val isAllSelected by remember { derivedStateOf { checkedContacts.size == contacts.size } }
-
-    Column {
-        // Select all header
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, end = 10.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                Modifier.background(
-                    MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(16.dp)
-                )
-            ) {
-                Row(
-                    Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Select All",
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
-                    Checkbox(
-                        checked = isAllSelected,
-                        onCheckedChange = { checked ->
-                            checkedContacts = if (checked) contacts.map { it.id }.toSet() else emptySet()
-                        },
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-        }
-
-        LazyColumn {
-            items(contacts) { contact ->
-                ContactListItem(
-                    contact = contact,
-                    checked = checkedContacts.contains(contact.id),
-                    onCheckedChange = { checked ->
-                        checkedContacts = if (checked) {
-                            checkedContacts + contact.id
-                        } else {
-                            checkedContacts - contact.id
-                        }
-                    }
-                )
-            }
-        }
-
-        // Bottom action bar
-        Surface(shadowElevation = 2.dp) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "${checkedContacts.size} Contacts Selected",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Button(onClick = { /* handle send */ }) {
-                    Text("Send")
-                }
-            }
-        }
     }
 }
 
@@ -772,85 +918,6 @@ fun ContactListItem(
             onCheckedChange = onCheckedChange,
             modifier = Modifier.size(28.dp)
         )
-    }
-}
-
-@Composable
-fun AppsDisplay(apps: List<AppItem>) {
-    var checkedApps by remember { mutableStateOf(setOf<String>()) }
-    val isAllSelected by remember { derivedStateOf { checkedApps.size == apps.size } }
-
-    Column {
-        // Select all header
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, end = 10.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                Modifier.background(
-                    MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(16.dp)
-                )
-            ) {
-                Row(
-                    Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Select All",
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
-                    Checkbox(
-                        checked = isAllSelected,
-                        onCheckedChange = { checked ->
-                            checkedApps = if (checked) apps.map { it.packageName }.toSet() else emptySet()
-                        },
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-        }
-
-        LazyColumn {
-            items(apps) { app ->
-                AppListItem(
-                    app = app,
-                    checked = checkedApps.contains(app.packageName),
-                    onCheckedChange = { checked ->
-                        checkedApps = if (checked) {
-                            checkedApps + app.packageName
-                        } else {
-                            checkedApps - app.packageName
-                        }
-                    }
-                )
-            }
-        }
-
-        // Bottom action bar
-        Surface(shadowElevation = 2.dp) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "${checkedApps.size} Apps Selected",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Button(onClick = { /* handle send */ }) {
-                    Text("Send")
-                }
-            }
-        }
     }
 }
 
@@ -926,85 +993,6 @@ fun AppListItem(
 }
 
 @Composable
-fun FilesDisplay(files: List<FileItem>) {
-    var checkedFiles by remember { mutableStateOf(setOf<String>()) }
-    val isAllSelected by remember { derivedStateOf { checkedFiles.size == files.size } }
-
-    Column {
-        // Select all header
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, end = 10.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                Modifier.background(
-                    MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(16.dp)
-                )
-            ) {
-                Row(
-                    Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Select All",
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
-                    Checkbox(
-                        checked = isAllSelected,
-                        onCheckedChange = { checked ->
-                            checkedFiles = if (checked) files.map { it.path }.toSet() else emptySet()
-                        },
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-        }
-
-        LazyColumn {
-            items(files) { file ->
-                FileListItem(
-                    file = file,
-                    checked = checkedFiles.contains(file.path),
-                    onCheckedChange = { checked ->
-                        checkedFiles = if (checked) {
-                            checkedFiles + file.path
-                        } else {
-                            checkedFiles - file.path
-                        }
-                    }
-                )
-            }
-        }
-
-        // Bottom action bar
-        Surface(shadowElevation = 2.dp) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "${checkedFiles.size} Files Selected",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Button(onClick = { /* handle send */ }) {
-                    Text("Send")
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun FileListItem(
     file: FileItem,
     checked: Boolean,
@@ -1065,7 +1053,7 @@ fun FileListItem(
     }
 }
 
-
+// Helper functions and data loading functions
 private suspend fun loadDataForCurrentTab(
     tabIndex: Int,
     context: Context,
@@ -1124,7 +1112,6 @@ private suspend fun loadDataForCurrentTab(
         }
     }
 }
-
 
 private fun getRequiredPermissions(tabIndex: Int): List<String> {
     return when (tabIndex) {
@@ -1196,7 +1183,6 @@ private fun getMediaTypeIconTint(mediaType: MediaType): Color {
     }
 }
 
-
 private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
     return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
             cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
@@ -1212,6 +1198,6 @@ fun SelectFilesPreview() {
 @Composable
 fun SelectFilesdarkPreview() {
     SmartSwitchTheme(useDarkTheme = false, dynamicColour = false) {
-    SelectFiles(navController = NavHostController(LocalContext.current))
+        SelectFiles(navController = NavHostController(LocalContext.current))
     }
 }

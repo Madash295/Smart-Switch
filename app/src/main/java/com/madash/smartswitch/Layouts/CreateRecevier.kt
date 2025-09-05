@@ -236,7 +236,7 @@ fun ReceivingAnimation() {
         ) {
             val iconTint = if (dynamic) MaterialTheme.colorScheme.primaryContainer else Color.White
             Icon(
-                painter = painterResource(R.drawable.receivenew),
+                painter = painterResource(R.drawable.receive),
                 contentDescription = "Receive",
                 tint = iconTint,
                 modifier = Modifier.size(48.dp)

@@ -40,6 +40,7 @@ class WiFiConnectionManager(private val context: Context) : WifiDirectActionList
     private var deviceName: String = ""
     private var isDiscovering = false
     private var serverSocket: ServerSocket? = null
+    private var onPeersFoundCallback: ((List<WifiP2pDevice>) -> Unit)? = null
 
     companion object {
         private const val TAG = "WiFiConnectionManager"
@@ -241,6 +242,7 @@ class WiFiConnectionManager(private val context: Context) : WifiDirectActionList
 
             if (availablePeers.isNotEmpty()) {
                 Log.d(TAG, "Found ${availablePeers.size} peers, device ready for connections")
+                onPeersFoundCallback?.invoke(availablePeers)
                 break
             }
 
@@ -292,6 +294,10 @@ class WiFiConnectionManager(private val context: Context) : WifiDirectActionList
         devices.forEach { device ->
             Log.d(TAG, "Peer: ${device.deviceName} (${device.deviceAddress}) - Status: ${device.status}")
         }
+
+        // CRITICAL: Call the UI callback immediately when peers are found
+        Log.d(TAG, "Calling onPeersFoundCallback with ${devices.size} peers")
+        onPeersFoundCallback?.invoke(availablePeers.toList())
 
         // For receiver mode, we don't need to connect to peers
         // We just need to be discoverable and ready to accept connections
@@ -487,6 +493,10 @@ class WiFiConnectionManager(private val context: Context) : WifiDirectActionList
 
     suspend fun cleanupConnections() = connectionMutex.withLock {
         forceCleanup()
+    }
+
+    fun setOnPeersFoundCallback(callback: ((List<WifiP2pDevice>) -> Unit)?) {
+        this.onPeersFoundCallback = callback
     }
 
     // Helper methods

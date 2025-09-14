@@ -189,7 +189,7 @@ data class ConnectionConfig(
  */
 fun getDefaultConnectionConfig(context: Context): ConnectionConfig {
     return ConnectionConfig(
-        mode = ConnectionMode.LOCAL_NETWORK, // Changed from AUTOMATIC to LOCAL_NETWORK
+        mode = ConnectionMode.WIFI_DIRECT, // Changed from AUTOMATIC to LOCAL_NETWORK
         band = getBestAvailableBand(context)
     )
 }

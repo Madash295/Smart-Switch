@@ -45,7 +45,10 @@ import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanQrCode(navController: NavController) {
+fun ScanQrCode(
+    navController: NavController,
+    onQrResult: (String) -> Unit = {} // Add this parameter
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -70,13 +73,20 @@ fun ScanQrCode(navController: NavController) {
         }
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
-            ScanQrCodeMain()
+            ScanQrCodeMain { qrData ->
+                // Handle QR scan result
+                onQrResult(qrData)
+                // Navigate back with result
+                navController.popBackStack()
+            }
         }
     }
 }
 
 @Composable
-fun ScanQrCodeMain() {
+fun ScanQrCodeMain(
+    onQrCodeDetected: (String) -> Unit = {} // Add this parameter
+) {
     var hasPermission by remember { mutableStateOf(false) }
     var qrCodeDetected by remember { mutableStateOf(false) }
     var detectedQrCode by remember { mutableStateOf("") }
@@ -111,7 +121,8 @@ fun ScanQrCodeMain() {
                     if (!qrCodeDetected) {
                         qrCodeDetected = true
                         detectedQrCode = qrCode
-                        // Handle QR code detection here
+                        // Call the callback with detected QR code
+                        onQrCodeDetected(qrCode)
                     }
                 }
             )

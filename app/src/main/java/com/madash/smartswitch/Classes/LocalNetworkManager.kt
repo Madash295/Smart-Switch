@@ -41,7 +41,7 @@ class LocalNetworkConnectionManager(private val context: Context) {
         private const val DISCOVERY_PORT = 8081
         private const val SERVICE_TYPE = "_smartswitch._tcp"
         private const val BROADCAST_INTERVAL = 5000L // 5 seconds
-        private const val DISCOVERY_TIMEOUT = 30000L // 30 seconds
+        private const val DISCOVERY_TIMEOUT = 45000L // 45 seconds
         private const val MAX_PORT_ATTEMPTS = 10
     }
 
@@ -663,6 +663,23 @@ data class LocalDeviceInfo(
     val port: Int,
     val timestamp: Long
 )
+
+/**
+ * Data class for WiFi Direct device information
+ */
+data class WiFiDirectDeviceInfo(
+    val name: String,
+    val ipAddress: String,
+    val port: Int,
+    val timestamp: Long,
+    val deviceType: String,
+    val status: String
+) {
+    // Convert to LocalDeviceInfo for compatibility
+    fun toLocalDeviceInfo(): LocalDeviceInfo {
+        return LocalDeviceInfo(name, ipAddress, port, timestamp)
+    }
+}
 
 /**
  * Get required permissions for local network connection

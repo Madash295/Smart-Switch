@@ -70,7 +70,7 @@ dependencies {
 
     implementation(libs.lottie.compose)
 
-
+    implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
@@ -80,7 +80,7 @@ dependencies {
 // ML Kit Barcode Scanning
     implementation(libs.barcode.scanning)
 // Kotlinx Serialization JSON
-    implementation("com.google.zxing:core:3.5.3")
+    implementation(libs.core)
     implementation(libs.zxing.android.embedded)
     implementation(libs.coil.compose)
     implementation(libs.coil.video)

@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -129,36 +131,39 @@ fun NavGraph(
                 onDynamicColourChange = onDynamicColourChange
             )
         }
+        composable(Routes.ScanQr.route) {
+            // Get the previous back stack entry to pass result back
+            val previousBackStackEntry = remember(navController) {
+                navController.previousBackStackEntry
+            }
 
+            ScanQrCode(navController) { qrData ->
+                // Save the QR result to the previous screen's savedStateHandle
+                previousBackStackEntry?.savedStateHandle?.set("qr_result", qrData)
+            }
+        }
         composable(
             Routes.ScanningReceiver.route,
             arguments = listOf(
-                navArgument("mediaCount") {
-                    type = NavType.IntType
-                },
-                navArgument("appCount") {
-                    type = NavType.IntType
-                },
-                navArgument("contactCount") {
-                    type = NavType.IntType
-                },
-                navArgument("fileCount") {
-                    type = NavType.IntType
-                }
+                navArgument("mediaCount") { type = NavType.IntType },
+                navArgument("appCount") { type = NavType.IntType },
+                navArgument("contactCount") { type = NavType.IntType },
+                navArgument("fileCount") { type = NavType.IntType }
             )
-        ) {
+        ) { backStackEntry ->
+            // Listen for QR scan results
+            val qrResult = backStackEntry.savedStateHandle.getLiveData<String>("qr_result").observeAsState()
+
             ScanningReceiver(
-                navController,
-                it.arguments?.getInt("mediaCount"),
-                it.arguments?.getInt("appCount"),
-                it.arguments?.getInt("contactCount"),
-                it.arguments?.getInt("fileCount")
+                navController = navController,
+                mediaCount = backStackEntry.arguments?.getInt("mediaCount"),
+                appCount = backStackEntry.arguments?.getInt("appCount"),
+                contactCount = backStackEntry.arguments?.getInt("contactCount"),
+                fileCount = backStackEntry.arguments?.getInt("fileCount"),
+                qrScanResult = qrResult.value // Pass the QR result
             )
         }
 
-        composable(Routes.ScanQr.route) {
-            ScanQrCode(navController)
-        }
 
 
         composable(Routes.CreateReceiver.route) {

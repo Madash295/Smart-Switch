@@ -80,7 +80,8 @@ dependencies {
 // ML Kit Barcode Scanning
     implementation(libs.barcode.scanning)
 // Kotlinx Serialization JSON
-
+    implementation("com.google.zxing:core:3.5.3")
+    implementation(libs.zxing.android.embedded)
     implementation(libs.coil.compose)
     implementation(libs.coil.video)
     implementation(libs.kotlinx.coroutines.android)

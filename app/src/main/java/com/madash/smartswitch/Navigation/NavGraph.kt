@@ -15,6 +15,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.example.smartswitch.LaunchViewModel
 import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.madash.smartswitch.Layouts.CreateReceiver
 import com.madash.smartswitch.Layouts.FileTransfer
 import com.madash.smartswitch.Layouts.PhoneClone
 import com.madash.smartswitch.Layouts.ScanQrCode
@@ -52,7 +53,14 @@ sealed class Routes(val route: String) {
         }
     }
 
+
+
     object ScanQr: Routes("scanqr")
+
+
+    object CreateReceiver: Routes("createreceiver")
+
+
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -150,6 +158,11 @@ fun NavGraph(
 
         composable(Routes.ScanQr.route) {
             ScanQrCode(navController)
+        }
+
+
+        composable(Routes.CreateReceiver.route) {
+            CreateReceiver(navController)
         }
     }
 }

@@ -172,7 +172,7 @@ fun Maincontent(navController: NavHostController) {
               gradient = if (dynamic) dynamicReceiverColors else staticReceiverGradient,
               icon = painterResource(R.drawable.receive),
               navController = navController,
-              route = Routes.PhoneClone.route
+              route = Routes.CreateReceiver.route
           )
           Spacer(modifier = Modifier.height(10.dp))
       }
